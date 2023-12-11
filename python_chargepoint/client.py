@@ -58,6 +58,7 @@ class ChargePoint:
         password: str,
         session_token: str = "",
         app_version: str = "5.97.0",
+        proxies: Optional[dict] = None
     ):
         self._session = Session()
         self._app_version = app_version
@@ -75,6 +76,7 @@ class ChargePoint:
         self._user_id = None
         self._logged_in = False
         self._session_token = None
+        self._proxies = proxies
         self._global_config = self._get_configuration(username)
 
         if session_token:
@@ -130,7 +132,7 @@ class ChargePoint:
             "password": password,
         }
         _LOGGER.debug("Attempting client login with user: %s", username)
-        login = post(login_url, json=request, headers=headers)
+        login = post(login_url, json=request, headers=headers, proxies=self._proxies)
         _LOGGER.debug(login.cookies.get_dict())
         _LOGGER.debug(login.headers)
 
@@ -153,6 +155,7 @@ class ChargePoint:
         response = self._session.post(
             f"{self._global_config.endpoints.accounts}v1/driver/profile/account/logout",
             json={"deviceData": self._device_data},
+            proxies=self._proxies
         )
 
         if response.status_code != codes.ok:
@@ -168,7 +171,9 @@ class ChargePoint:
     def _get_configuration(self, username: str) -> ChargePointGlobalConfiguration:
         _LOGGER.debug("Discovering account region for username %s", username)
         request = {"deviceData": self._device_data, "username": username}
-        response = self._session.post(DISCOVERY_API, json=request)
+
+        response = self._session.post(DISCOVERY_API, json=request, proxies=self._proxies)
+
         if response.status_code != codes.ok:
             raise ChargePointCommunicationException(
                 response=response,
@@ -202,9 +207,11 @@ class ChargePoint:
     @_require_login
     def get_account(self) -> ChargePointAccount:
         _LOGGER.debug("Getting ChargePoint Account Details")
+
         response = self._session.get(
             f"{self._global_config.endpoints.accounts}v1/driver/profile/user",
             params=self._device_query_params,
+            proxies=self._proxies
         )
 
         if response.status_code != codes.ok:
@@ -223,9 +230,11 @@ class ChargePoint:
     @_require_login
     def get_vehicles(self) -> List[ElectricVehicle]:
         _LOGGER.debug("Listing vehicles")
+
         response = self._session.get(
             f"{self._global_config.endpoints.accounts}v1/driver/vehicle",
             params=self._device_query_params,
+            proxies=self._proxies
         )
 
         if response.status_code != codes.ok:
@@ -245,8 +254,9 @@ class ChargePoint:
     def get_home_chargers(self) -> List[int]:
         _LOGGER.debug("Searching for registered pandas")
         get_pandas = {"user_id": self.user_id, "get_pandas": {"mfhs": {}}}
+
         response = self._session.post(
-            f"{self._global_config.endpoints.webservices}mobileapi/v5", json=get_pandas
+            f"{self._global_config.endpoints.webservices}mobileapi/v5", json=get_pandas, proxies=self._proxies
         )
 
         if response.status_code != codes.ok:
@@ -276,7 +286,7 @@ class ChargePoint:
             "get_panda_status": {"device_id": charger_id, "mfhs": {}},
         }
         response = self._session.post(
-            f"{self._global_config.endpoints.webservices}mobileapi/v5", json=get_status
+            f"{self._global_config.endpoints.webservices}mobileapi/v5", json=get_status, proxies=self._proxies
         )
 
         if response.status_code != codes.ok:
@@ -310,6 +320,7 @@ class ChargePoint:
         response = self._session.post(
             f"{self._global_config.endpoints.webservices}mobileapi/v5",
             json=get_tech_info,
+            proxies=self._proxies
         )
 
         if response.status_code != codes.ok:
@@ -334,8 +345,9 @@ class ChargePoint:
     def get_user_charging_status(self) -> Optional[UserChargingStatus]:
         _LOGGER.debug("Checking account charging status")
         request = {"deviceData": self._device_data, "user_status": {"mfhs": {}}}
+
         response = self._session.post(
-            f"{self._global_config.endpoints.mapcache}v2", json=request
+            f"{self._global_config.endpoints.mapcache}v2", json=request, proxies=self._proxies
         )
 
         if response.status_code != codes.ok:
