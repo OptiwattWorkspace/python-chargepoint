@@ -132,10 +132,7 @@ class ChargePoint:
             "password": password,
         }
         _LOGGER.debug("Attempting client login with user: %s", username)
-        if self._proxies is not None:
-            login = post(login_url, json=request, headers=headers, proxies=self._proxies)
-        else:
-            login = post(login_url, json=request, headers=headers)
+        login = post(login_url, json=request, headers=headers, proxies=self._proxies)
         _LOGGER.debug(login.cookies.get_dict())
         _LOGGER.debug(login.headers)
 
@@ -155,17 +152,11 @@ class ChargePoint:
         raise ChargePointLoginError(login, "Failed to authenticate to ChargePoint!")
 
     def logout(self):
-        if self._proxies is not None:
-            response = self._session.post(
-                f"{self._global_config.endpoints.accounts}v1/driver/profile/account/logout",
-                json={"deviceData": self._device_data},
-                proxies=self._proxies
-            )
-        else:
-            response = self._session.post(
-                f"{self._global_config.endpoints.accounts}v1/driver/profile/account/logout",
-                json={"deviceData": self._device_data},
-            )
+        response = self._session.post(
+            f"{self._global_config.endpoints.accounts}v1/driver/profile/account/logout",
+            json={"deviceData": self._device_data},
+            proxies=self._proxies
+        )
 
         if response.status_code != codes.ok:
             raise ChargePointCommunicationException(
@@ -181,10 +172,8 @@ class ChargePoint:
         _LOGGER.debug("Discovering account region for username %s", username)
         request = {"deviceData": self._device_data, "username": username}
 
-        if self._proxies is not None:
-            response = self._session.post(DISCOVERY_API, json=request, proxies=self._proxies)
-        else:
-            response = self._session.post(DISCOVERY_API, json=request)
+        response = self._session.post(DISCOVERY_API, json=request, proxies=self._proxies)
+
         if response.status_code != codes.ok:
             raise ChargePointCommunicationException(
                 response=response,
@@ -219,17 +208,11 @@ class ChargePoint:
     def get_account(self) -> ChargePointAccount:
         _LOGGER.debug("Getting ChargePoint Account Details")
 
-        if self._proxies is not None:
-            response = self._session.get(
-                f"{self._global_config.endpoints.accounts}v1/driver/profile/user",
-                params=self._device_query_params,
-                proxies=self._proxies
-            )
-        else:
-            response = self._session.get(
-                f"{self._global_config.endpoints.accounts}v1/driver/profile/user",
-                params=self._device_query_params,
-            )
+        response = self._session.get(
+            f"{self._global_config.endpoints.accounts}v1/driver/profile/user",
+            params=self._device_query_params,
+            proxies=self._proxies
+        )
 
         if response.status_code != codes.ok:
             _LOGGER.error(
@@ -248,17 +231,11 @@ class ChargePoint:
     def get_vehicles(self) -> List[ElectricVehicle]:
         _LOGGER.debug("Listing vehicles")
 
-        if self._proxies is not None:
-            response = self._session.get(
-                f"{self._global_config.endpoints.accounts}v1/driver/vehicle",
-                params=self._device_query_params,
-                proxies=self._proxies
-            )
-        else:
-            response = self._session.get(
-                f"{self._global_config.endpoints.accounts}v1/driver/vehicle",
-                params=self._device_query_params,
-            )
+        response = self._session.get(
+            f"{self._global_config.endpoints.accounts}v1/driver/vehicle",
+            params=self._device_query_params,
+            proxies=self._proxies
+        )
 
         if response.status_code != codes.ok:
             _LOGGER.error(
@@ -278,14 +255,9 @@ class ChargePoint:
         _LOGGER.debug("Searching for registered pandas")
         get_pandas = {"user_id": self.user_id, "get_pandas": {"mfhs": {}}}
 
-        if self._proxies is not None:
-            response = self._session.post(
-                f"{self._global_config.endpoints.webservices}mobileapi/v5", json=get_pandas, proxies=self._proxies
-            )
-        else:
-            response = self._session.post(
-                f"{self._global_config.endpoints.webservices}mobileapi/v5", json=get_pandas
-            )
+        response = self._session.post(
+            f"{self._global_config.endpoints.webservices}mobileapi/v5", json=get_pandas, proxies=self._proxies
+        )
 
         if response.status_code != codes.ok:
             _LOGGER.error(
@@ -313,14 +285,9 @@ class ChargePoint:
             "user_id": self.user_id,
             "get_panda_status": {"device_id": charger_id, "mfhs": {}},
         }
-        if self._proxies is not None:
-            response = self._session.post(
-                f"{self._global_config.endpoints.webservices}mobileapi/v5", json=get_status, proxies=self._proxies
-            )
-        else:
-            response = self._session.post(
-                f"{self._global_config.endpoints.webservices}mobileapi/v5", json=get_status
-            )
+        response = self._session.post(
+            f"{self._global_config.endpoints.webservices}mobileapi/v5", json=get_status, proxies=self._proxies
+        )
 
         if response.status_code != codes.ok:
             _LOGGER.error(
@@ -350,17 +317,11 @@ class ChargePoint:
             "get_station_technical_info": {"device_id": charger_id, "mfhs": {}},
         }
 
-        if self._proxies is not None:
-            response = self._session.post(
-                f"{self._global_config.endpoints.webservices}mobileapi/v5",
-                json=get_tech_info,
-                proxies=self._proxies
-            )
-        else:
-            response = self._session.post(
-                f"{self._global_config.endpoints.webservices}mobileapi/v5",
-                json=get_tech_info,
-            )
+        response = self._session.post(
+            f"{self._global_config.endpoints.webservices}mobileapi/v5",
+            json=get_tech_info,
+            proxies=self._proxies
+        )
 
         if response.status_code != codes.ok:
             _LOGGER.error(
@@ -385,14 +346,9 @@ class ChargePoint:
         _LOGGER.debug("Checking account charging status")
         request = {"deviceData": self._device_data, "user_status": {"mfhs": {}}}
 
-        if self._proxies is not None:
-            response = self._session.post(
-                f"{self._global_config.endpoints.mapcache}v2", json=request, proxies=self._proxies
-            )
-        else:
-            response = self._session.post(
-                f"{self._global_config.endpoints.mapcache}v2", json=request
-            )
+        response = self._session.post(
+            f"{self._global_config.endpoints.mapcache}v2", json=request, proxies=self._proxies
+        )
 
         if response.status_code != codes.ok:
             _LOGGER.error(
