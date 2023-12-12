@@ -1,3 +1,6 @@
+# ⚠️Archived as of 12/12/2023 ⚠️
+Optiwatt has decided to copy/paste this code into the repository where it is used to make quicker, more relevant updates. 
+
 # python-chargepoint
 
 A simple Pythonic wrapper around the ChargePoint EV Charging Network API.
